@@ -1,98 +1,362 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Spell Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-#app { padding: 1rem 0; max-width: 820px; }
-.header { text-align: center; margin-bottom: 1.5rem; }
-.header h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
-.header p { font-size: 14px; color: var(--color-text-secondary); margin-top: 4px; }
-.time-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
-.time-btn { padding: 8px 20px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; font-size: 14px; color: var(--color-text-primary); transition: all 0.15s; }
-.time-btn:hover { background: var(--color-background-secondary); }
-.time-btn.active { background: #185FA5; color: #fff; border-color: #185FA5; }
-.stats-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
-.stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; text-align: center; }
-.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
-.stat-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
-.stat-val.timer-low { color: #E24B4A; }
-.sentence-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
-.sentence-display { font-size: 17px; line-height: 1.9; letter-spacing: 0.01em; margin-bottom: 8px; word-break: break-word; }
-.meaning { font-size: 13px; color: var(--color-text-secondary); border-top: 0.5px solid var(--color-border-tertiary); padding-top: 8px; margin-top: 4px; }
-.meaning span { color: #185FA5; font-weight: 500; }
-.char { display: inline; }
-.char.correct { color: #3B6D11; }
-.char.wrong { color: #A32D2D; background: #FCEBEB; border-radius: 2px; }
-.char.pending { color: var(--color-text-secondary); }
-.char.current { border-bottom: 2px solid #185FA5; }
-textarea { width: 100%; min-height: 72px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 12px; font-size: 16px; font-family: var(--font-sans); resize: none; background: var(--color-background-primary); color: var(--color-text-primary); outline: none; transition: border-color 0.15s; }
-textarea:focus { border-color: #185FA5; box-shadow: 0 0 0 2px rgba(24,95,165,0.12); }
-textarea:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-row { display: flex; gap: 10px; margin-top: 1rem; justify-content: center; flex-wrap: wrap; }
-.btn-primary { padding: 10px 28px; border-radius: var(--border-radius-md); background: #185FA5; color: #fff; border: none; cursor: pointer; font-size: 15px; font-weight: 500; }
-.btn-primary:hover { background: #0C447C; }
-.btn-secondary { padding: 10px 22px; border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-primary); border: 0.5px solid var(--color-border-secondary); cursor: pointer; font-size: 15px; }
-.btn-secondary:hover { background: var(--color-background-secondary); }
-.results-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; text-align: center; display: none; }
-.results-card.show { display: block; }
-.results-title { font-size: 18px; font-weight: 500; margin-bottom: 1rem; }
-.results-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1rem; }
-.r-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px; }
-.r-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
-.r-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
-.r-val.highlight { color: #185FA5; }
-.highscore-note { font-size: 13px; color: var(--color-text-secondary); margin-top: 8px; }
-.highscore-note span { color: #3B6D11; font-weight: 500; }
-#progress-bar-wrap { height: 4px; background: var(--color-background-secondary); border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
-#progress-bar { height: 100%; background: #185FA5; border-radius: 4px; transition: width 0.5s linear; width: 100%; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0e14;
+  --surface: #17171f;
+  --surface2: #1e1e28;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --accent: #6c63ff;
+  --accent2: #a78bfa;
+  --green: #34d399;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --text: #f0f0f8;
+  --muted: #7878a0;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Sora', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem 4rem;
+}
+
+/* subtle grid bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(108,99,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108,99,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app { position: relative; z-index: 1; width: 100%; max-width: 860px; }
+
+/* HEADER */
+.header { text-align: center; margin-bottom: 2.5rem; padding-top: 1rem; }
+.header h1 {
+  font-family: var(--mono);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #a78bfa, #6c63ff, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header p { font-size: 14px; color: var(--muted); margin-top: 6px; letter-spacing: 0.03em; }
+
+/* TIME BUTTONS */
+.time-btns {
+  display: flex; gap: 10px; justify-content: center;
+  flex-wrap: wrap; margin-bottom: 2rem;
+}
+.time-btn {
+  padding: 9px 24px;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: all 0.18s;
+}
+.time-btn:hover { border-color: var(--accent); color: var(--accent2); }
+.time-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* STATS ROW */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.stat-val { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--text); }
+.stat-val.timer-low { color: var(--red); }
+.stat-val.green { color: var(--green); }
+
+/* PROGRESS BAR */
+#progress-wrap {
+  height: 3px;
+  background: var(--surface2);
+  border-radius: 3px;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+#progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  border-radius: 3px;
+  transition: width 0.6s linear;
+  width: 100%;
+}
+
+/* SENTENCE CARD */
+.sentence-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+#sentence-chars {
+  font-size: clamp(1.15rem, 2.5vw, 1.5rem);
+  line-height: 2;
+  letter-spacing: 0.02em;
+  word-break: break-word;
+  font-family: var(--sans);
+  font-weight: 400;
+}
+.char { display: inline; transition: color 0.05s; }
+.char.correct { color: var(--green); }
+.char.wrong { color: var(--red); text-decoration: underline wavy var(--red); }
+.char.pending { color: var(--muted); }
+.char.current {
+  color: var(--text);
+  border-bottom: 2px solid var(--accent);
+}
+
+.meaning {
+  font-size: 15px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  width: 100%;
+  text-align: center;
+}
+.meaning .label { color: var(--accent2); font-weight: 500; }
+.meaning .bn { color: #c4b5fd; font-size: 15px; }
+
+/* WORD COUNTER */
+#word-counter {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+  margin-bottom: 1rem; min-height: 28px;
+}
+.word-chip {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  transition: all 0.15s;
+}
+.word-chip.ok { border-color: var(--green); color: var(--green); background: rgba(52,211,153,0.08); }
+.word-chip.bad { border-color: var(--red); color: var(--red); background: rgba(248,113,113,0.08); }
+
+/* INPUT */
+.input-wrap { display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
+#input-box {
+  width: 100%;
+  max-width: 680px;
+  font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+  font-family: var(--mono);
+  color: var(--text);
+  background: var(--surface);
+  border: 1.5px solid var(--border2);
+  border-radius: 14px;
+  padding: 18px 22px;
+  outline: none;
+  resize: none;
+  min-height: 68px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  line-height: 1.6;
+  text-align: center;
+}
+#input-box::placeholder { color: var(--muted); font-size: 14px; }
+#input-box:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,99,255,0.18);
+}
+#input-box:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn-primary {
+  padding: 12px 36px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  transition: all 0.18s;
+  box-shadow: 0 4px 20px rgba(108,99,255,0.3);
+}
+.btn-primary:hover { background: #5751e0; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(108,99,255,0.4); }
+.btn-primary:active { transform: scale(0.97); }
+.btn-skip {
+  padding: 12px 26px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: all 0.18s;
+}
+.btn-skip:hover { border-color: var(--amber); color: var(--amber); }
+.btn-skip:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* HISTORY */
+#history-section { margin-top: 2rem; }
+.history-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 10px; font-family: var(--mono); }
+.history-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.history-item .h-sentence { color: var(--muted); flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.history-item .h-badge {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 2px 10px; border-radius: 999px; white-space: nowrap;
+}
+.h-badge.ok { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+.h-badge.bad { background: rgba(248,113,113,0.1); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+
+/* RESULTS */
+#results-card {
+  display: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  text-align: center;
+  margin-top: 1.5rem;
+}
+#results-card.show { display: block; animation: fadeUp 0.4s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+.results-title { font-family: var(--mono); font-size: 20px; font-weight: 700; margin-bottom: 1.5rem; color: var(--accent2); }
+.results-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.r-card { background: var(--surface2); border-radius: 12px; padding: 16px; }
+.r-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
+.r-val { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--text); }
+.r-val.acc { color: var(--green); }
+.r-val.wpm { color: var(--accent2); }
+.hs-note { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.hs-note span { color: var(--amber); font-weight: 600; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+@media (max-width: 540px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .results-grid { grid-template-columns: repeat(2, 1fr); }
+  .sentence-card { padding: 1.5rem 1.2rem; }
+}
 </style>
-
+</head>
+<body>
 <div id="app">
-<h2 class="sr-only">Spell checker typing game with English sentences and Bengali meanings</h2>
-<div class="header">
-  <h1>Typing spell checker</h1>
-  <p>Type each sentence correctly — builds vocabulary with Bengali meanings</p>
-</div>
 
-<div class="time-btns">
-  <button class="time-btn active" data-time="60">1 minute</button>
-  <button class="time-btn" data-time="120">2 minutes</button>
-  <button class="time-btn" data-time="300">5 minutes</button>
-  <button class="time-btn" data-time="600">10 minutes</button>
-</div>
-
-<div class="stats-row">
-  <div class="stat-card"><div class="stat-label">Time left</div><div class="stat-val" id="timer-display">1:00</div></div>
-  <div class="stat-card"><div class="stat-label">Correct sentences</div><div class="stat-val" id="correct-count">0</div></div>
-  <div class="stat-card"><div class="stat-label">Accuracy</div><div class="stat-val" id="accuracy">100%</div></div>
-  <div class="stat-card"><div class="stat-label">High score</div><div class="stat-val" id="high-score-display">0</div></div>
-</div>
-
-<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
-
-<div class="sentence-card" id="sentence-card">
-  <div class="sentence-display" id="sentence-chars"></div>
-  <div class="meaning"><span>অর্থ:</span> <span id="meaning-bn"></span></div>
-</div>
-
-<textarea id="input-box" placeholder="Click 'Start' and begin typing..." disabled></textarea>
-
-<div class="btn-row">
-  <button class="btn-primary" id="start-btn">Start</button>
-  <button class="btn-secondary" id="skip-btn" disabled>Skip sentence</button>
-</div>
-
-<div class="results-card" id="results-card">
-  <div class="results-title">Session complete!</div>
-  <div class="results-grid">
-    <div class="r-card"><div class="r-label">Sentences typed</div><div class="r-val highlight" id="r-correct">0</div></div>
-    <div class="r-card"><div class="r-label">Accuracy</div><div class="r-val" id="r-accuracy">0%</div></div>
-    <div class="r-card"><div class="r-label">Errors</div><div class="r-val" id="r-errors">0</div></div>
+  <div class="header">
+    <h1>// TYPING SPELL CHECKER</h1>
+    <p>Type each sentence · count words per line · build vocabulary</p>
   </div>
-  <div class="highscore-note" id="hs-note"></div>
-  <div class="btn-row" style="margin-top:1rem;">
-    <button class="btn-primary" id="restart-btn">Play again</button>
+
+  <div class="time-btns">
+    <button class="time-btn active" data-time="60">1 min</button>
+    <button class="time-btn" data-time="120">2 min</button>
+    <button class="time-btn" data-time="300">5 min</button>
+    <button class="time-btn" data-time="600">10 min</button>
   </div>
-</div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Time left</div><div class="stat-val" id="timer-display">1:00</div></div>
+    <div class="stat-card"><div class="stat-label">Words typed</div><div class="stat-val green" id="word-count">0</div></div>
+    <div class="stat-card"><div class="stat-label">Accuracy</div><div class="stat-val" id="accuracy">—</div></div>
+    <div class="stat-card"><div class="stat-label">High score</div><div class="stat-val" id="hs-display">0</div></div>
+  </div>
+
+  <div id="progress-wrap"><div id="progress-bar"></div></div>
+
+  <div class="sentence-card" id="sentence-card">
+    <div id="sentence-chars"></div>
+    <div class="meaning"><span class="label">অর্থ: </span><span class="bn" id="meaning-bn">—</span></div>
+  </div>
+
+  <div id="word-counter"></div>
+
+  <div class="input-wrap">
+    <textarea id="input-box" rows="2" placeholder="Press Start, then type here… Press Enter to submit" disabled></textarea>
+    <div class="btn-row">
+      <button class="btn-primary" id="start-btn">START</button>
+      <button class="btn-skip" id="skip-btn" disabled>SKIP</button>
+    </div>
+  </div>
+
+  <div id="history-section" style="display:none;">
+    <div class="history-title">Recent sentences</div>
+    <div class="history-list" id="history-list"></div>
+  </div>
+
+  <div id="results-card">
+    <div class="results-title">// SESSION COMPLETE</div>
+    <div class="results-grid">
+      <div class="r-card"><div class="r-label">Sentences</div><div class="r-val wpm" id="r-sentences">0</div></div>
+      <div class="r-card"><div class="r-label">Total words</div><div class="r-val" id="r-words">0</div></div>
+      <div class="r-card"><div class="r-label">Accuracy</div><div class="r-val acc" id="r-accuracy">—</div></div>
+    </div>
+    <div class="hs-note" id="hs-note"></div>
+    <div class="btn-row" style="margin-top:1.5rem;">
+      <button class="btn-primary" id="restart-btn">PLAY AGAIN</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -137,17 +401,30 @@ const SENTENCES = [
   {en:"He had already left when the news came.", bn:"খবর আসার সময় সে ইতিমধ্যে চলে গিয়েছিল।"},
   {en:"She does not like to eat spicy food.", bn:"সে ঝাল খাবার খেতে পছন্দ করে না।"},
   {en:"I have been learning to drive this week.", bn:"এই সপ্তাহে আমি গাড়ি চালানো শিখছি।"},
+  {en:"He had to work late every day last month.", bn:"গত মাসে তাকে প্রতিদিন দেরি পর্যন্ত কাজ করতে হয়েছিল।"},
+  {en:"The birds have built a nest in our tree.", bn:"পাখিরা আমাদের গাছে একটি বাসা বানিয়েছে।"},
+  {en:"I will be waiting for you at the gate.", bn:"আমি গেটে তোমার জন্য অপেক্ষা করব।"},
+  {en:"She has not called me for three days.", bn:"সে তিন দিন ধরে আমাকে ফোন করেনি।"},
+  {en:"They were singing songs around the campfire.", bn:"তারা ক্যাম্পফায়ারের চারপাশে গান গাইছিল।"},
+  {en:"He will have finished the task by evening.", bn:"সন্ধ্যার মধ্যে সে কাজটি শেষ করে ফেলবে।"},
+  {en:"I do not understand why she is upset.", bn:"কেন সে বিরক্ত তা আমি বুঝতে পারছি না।"},
+  {en:"We had to cancel the trip due to rain.", bn:"বৃষ্টির কারণে আমাদের ট্রিপ বাতিল করতে হয়েছিল।"},
+  {en:"She is the most talented student in class.", bn:"সে ক্লাসের সবচেয়ে মেধাবী ছাত্রী।"},
+  {en:"Have they already submitted their project?", bn:"তারা কি ইতিমধ্যে তাদের প্রজেক্ট জমা দিয়েছে?"},
+  {en:"He was tired but he kept on working.", bn:"সে ক্লান্ত ছিল কিন্তু কাজ চালিয়ে গেল।"},
 ];
 
-let sentences = [];
-let state = {
+const state = {
   running: false,
   selectedTime: 60,
   timeLeft: 60,
   currentIdx: 0,
-  correctCount: 0,
-  totalTyped: 0,
-  errors: 0,
+  sentences: [],
+  correctSentences: 0,
+  totalWords: 0,
+  totalChars: 0,
+  totalErrors: 0,
+  history: [],
   interval: null,
 };
 
@@ -160,103 +437,150 @@ function shuffle(arr) {
   return a;
 }
 
-function getHSKey() { return 'typing_hs_' + state.selectedTime; }
+function getHSKey() { return 'tsc_hs_' + state.selectedTime; }
 function getHS() { try { return parseInt(localStorage.getItem(getHSKey()) || '0'); } catch(e) { return 0; } }
 function setHS(v) { try { localStorage.setItem(getHSKey(), v); } catch(e) {} }
 
-function updateHSDisplay() {
-  document.getElementById('high-score-display').textContent = getHS();
+function fmt(s) {
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
 }
 
-function formatTime(s) {
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return m + ':' + String(sec).padStart(2, '0');
+function getCurrentSentence() {
+  return state.sentences[state.currentIdx % state.sentences.length];
 }
 
-function renderSentence(text, typed) {
+function countWords(text) {
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
+function renderSentenceChars(typed) {
+  const target = getCurrentSentence().en;
   const container = document.getElementById('sentence-chars');
   let html = '';
-  for (let i = 0; i < text.length; i++) {
+  for (let i = 0; i < target.length; i++) {
     let cls = 'char pending';
     if (i < typed.length) {
-      cls = typed[i] === text[i] ? 'char correct' : 'char wrong';
+      cls = typed[i] === target[i] ? 'char correct' : 'char wrong';
     } else if (i === typed.length) {
       cls = 'char current';
     }
-    const ch = text[i] === ' ' ? '&nbsp;' : text[i].replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const ch = target[i] === ' ' ? '&nbsp;' : target[i].replace(/&/g,'&amp;').replace(/</g,'&lt;');
     html += `<span class="${cls}">${ch}</span>`;
   }
   container.innerHTML = html;
 }
 
+function renderWordChips(typed) {
+  const target = getCurrentSentence().en;
+  const targetWords = target.split(' ');
+  const typedWords = typed.split(' ');
+  const container = document.getElementById('word-counter');
+  let html = '';
+  for (let i = 0; i < targetWords.length; i++) {
+    const tw = typedWords[i];
+    let cls = 'word-chip';
+    if (tw !== undefined) {
+      if (tw === targetWords[i]) cls += ' ok';
+      else if (tw.length > 0) cls += ' bad';
+    }
+    html += `<span class="${cls}">${targetWords[i]}</span>`;
+  }
+  container.innerHTML = html;
+}
+
 function loadSentence() {
-  const s = sentences[state.currentIdx % sentences.length];
-  renderSentence(s.en, '');
+  const s = getCurrentSentence();
+  renderSentenceChars('');
+  renderWordChips('');
   document.getElementById('meaning-bn').textContent = s.bn;
   document.getElementById('input-box').value = '';
+  document.getElementById('input-box').style.height = 'auto';
 }
 
-function calcAccuracy() {
-  if (state.totalTyped === 0) return 100;
-  return Math.round(((state.totalTyped - state.errors) / state.totalTyped) * 100);
+function submitSentence(typed) {
+  const target = getCurrentSentence().en;
+  const isCorrect = typed.trim() === target.trim();
+  const words = countWords(typed);
+
+  // count char errors
+  let errs = 0;
+  for (let i = 0; i < Math.max(typed.length, target.length); i++) {
+    if (typed[i] !== target[i]) errs++;
+  }
+
+  state.totalWords += words;
+  state.totalChars += typed.length;
+  state.totalErrors += errs;
+  if (isCorrect) state.correctSentences++;
+
+  // update word count display
+  document.getElementById('word-count').textContent = state.totalWords;
+
+  // accuracy
+  const acc = state.totalChars > 0
+    ? Math.round(((state.totalChars - state.totalErrors) / state.totalChars) * 100)
+    : 100;
+  document.getElementById('accuracy').textContent = acc + '%';
+
+  // add to history
+  state.history.unshift({ sentence: target, correct: isCorrect, words });
+  renderHistory();
+
+  state.currentIdx++;
+  if (state.currentIdx >= state.sentences.length) {
+    state.sentences = shuffle(SENTENCES);
+    state.currentIdx = 0;
+  }
+  loadSentence();
 }
 
-function onInput(e) {
-  if (!state.running) return;
-  const typed = e.target.value;
-  const s = sentences[state.currentIdx % sentences.length];
-  state.totalTyped = typed.length;
-  renderSentence(s.en, typed);
-  
-  let err = 0;
-  for (let i = 0; i < typed.length; i++) {
-    if (i < s.en.length && typed[i] !== s.en[i]) err++;
-  }
-  state.errors = err;
-  document.getElementById('accuracy').textContent = calcAccuracy() + '%';
-
-  if (typed === s.en) {
-    state.correctCount++;
-    state.currentIdx++;
-    state.totalTyped = 0;
-    state.errors = 0;
-    document.getElementById('correct-count').textContent = state.correctCount;
-    if (state.currentIdx >= sentences.length) sentences = shuffle(SENTENCES);
-    loadSentence();
-  }
+function renderHistory() {
+  const section = document.getElementById('history-section');
+  const list = document.getElementById('history-list');
+  if (state.history.length === 0) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = state.history.slice(0,8).map(h => `
+    <div class="history-item">
+      <span class="h-sentence">${h.sentence}</span>
+      <span class="h-badge ${h.correct ? 'ok' : 'bad'}">${h.words}w · ${h.correct ? 'correct' : 'errors'}</span>
+    </div>
+  `).join('');
 }
 
 function startGame() {
-  sentences = shuffle(SENTENCES);
+  clearInterval(state.interval);
   state.running = true;
+  state.sentences = shuffle(SENTENCES);
   state.currentIdx = 0;
-  state.correctCount = 0;
-  state.totalTyped = 0;
-  state.errors = 0;
+  state.correctSentences = 0;
+  state.totalWords = 0;
+  state.totalChars = 0;
+  state.totalErrors = 0;
+  state.history = [];
   state.timeLeft = state.selectedTime;
 
-  document.getElementById('correct-count').textContent = '0';
-  document.getElementById('accuracy').textContent = '100%';
+  document.getElementById('word-count').textContent = '0';
+  document.getElementById('accuracy').textContent = '—';
   document.getElementById('results-card').classList.remove('show');
   document.getElementById('sentence-card').style.display = '';
   document.getElementById('input-box').disabled = false;
   document.getElementById('skip-btn').disabled = false;
-  document.getElementById('start-btn').textContent = 'Restart';
+  document.getElementById('start-btn').textContent = 'RESTART';
   document.getElementById('progress-bar').style.width = '100%';
-  updateHSDisplay();
+  document.getElementById('history-section').style.display = 'none';
+  document.getElementById('history-list').innerHTML = '';
+  document.getElementById('hs-display').textContent = getHS();
+
+  const timerEl = document.getElementById('timer-display');
+  timerEl.textContent = fmt(state.timeLeft);
+  timerEl.className = 'stat-val';
 
   loadSentence();
   document.getElementById('input-box').focus();
 
-  const timerEl = document.getElementById('timer-display');
-  timerEl.textContent = formatTime(state.timeLeft);
-  timerEl.className = 'stat-val';
-
-  clearInterval(state.interval);
   state.interval = setInterval(() => {
     state.timeLeft--;
-    timerEl.textContent = formatTime(state.timeLeft);
+    timerEl.textContent = fmt(state.timeLeft);
     const pct = (state.timeLeft / state.selectedTime) * 100;
     document.getElementById('progress-bar').style.width = pct + '%';
     if (state.timeLeft <= 10) timerEl.className = 'stat-val timer-low';
@@ -270,57 +594,89 @@ function endGame() {
   document.getElementById('input-box').disabled = true;
   document.getElementById('skip-btn').disabled = true;
 
-  const hs = getHS();
-  if (state.correctCount > hs) setHS(state.correctCount);
+  const oldHS = getHS();
+  if (state.totalWords > oldHS) setHS(state.totalWords);
   const newHS = getHS();
-  updateHSDisplay();
+  document.getElementById('hs-display').textContent = newHS;
 
-  document.getElementById('r-correct').textContent = state.correctCount;
-  document.getElementById('r-accuracy').textContent = calcAccuracy() + '%';
-  document.getElementById('r-errors').textContent = state.errors;
+  const acc = state.totalChars > 0
+    ? Math.round(((state.totalChars - state.totalErrors) / state.totalChars) * 100)
+    : 0;
+
+  document.getElementById('r-sentences').textContent = state.correctSentences;
+  document.getElementById('r-words').textContent = state.totalWords;
+  document.getElementById('r-accuracy').textContent = acc + '%';
 
   const hsNote = document.getElementById('hs-note');
-  if (state.correctCount >= newHS && state.correctCount > 0 && state.correctCount === newHS) {
-    hsNote.innerHTML = `New high score! <span>${newHS} sentences</span> for this duration.`;
+  if (state.totalWords >= oldHS && state.totalWords > 0) {
+    hsNote.innerHTML = `🎉 New high score! <span>${newHS} words</span> in ${fmt(state.selectedTime)}`;
   } else {
-    hsNote.innerHTML = `Your best for this duration: <span>${newHS} sentences</span>`;
+    hsNote.innerHTML = `Your best for this duration: <span>${newHS} words</span>`;
   }
 
   document.getElementById('results-card').classList.add('show');
-  document.getElementById('sentence-card').style.display = 'none';
-  document.getElementById('start-btn').textContent = 'Start';
-  document.getElementById('timer-display').textContent = formatTime(state.selectedTime);
+  document.getElementById('start-btn').textContent = 'START';
+  document.getElementById('timer-display').textContent = fmt(state.selectedTime);
   document.getElementById('timer-display').className = 'stat-val';
   document.getElementById('progress-bar').style.width = '100%';
 }
 
+// TIME BUTTONS
 document.querySelectorAll('.time-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.selectedTime = parseInt(btn.dataset.time);
     if (state.running) endGame();
-    document.getElementById('timer-display').textContent = formatTime(state.selectedTime);
-    document.getElementById('timer-display').className = 'stat-val';
-    document.getElementById('progress-bar').style.width = '100%';
-    updateHSDisplay();
+    else {
+      document.getElementById('timer-display').textContent = fmt(state.selectedTime);
+      document.getElementById('timer-display').className = 'stat-val';
+      document.getElementById('progress-bar').style.width = '100%';
+    }
+    document.getElementById('hs-display').textContent = getHS();
   });
+});
+
+// INPUT
+document.getElementById('input-box').addEventListener('input', function() {
+  if (!state.running) return;
+  const typed = this.value;
+  renderSentenceChars(typed);
+  renderWordChips(typed);
+  // auto-resize
+  this.style.height = 'auto';
+  this.style.height = this.scrollHeight + 'px';
+});
+
+document.getElementById('input-box').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (!state.running) return;
+    const typed = this.value.replace(/\n/g, '').trim();
+    if (typed.length === 0) return;
+    submitSentence(typed);
+    this.style.height = 'auto';
+  }
 });
 
 document.getElementById('start-btn').addEventListener('click', startGame);
 document.getElementById('restart-btn').addEventListener('click', startGame);
-document.getElementById('input-box').addEventListener('input', onInput);
 document.getElementById('skip-btn').addEventListener('click', () => {
   if (!state.running) return;
   state.currentIdx++;
-  state.totalTyped = 0;
-  state.errors = 0;
-  if (state.currentIdx >= sentences.length) sentences = shuffle(SENTENCES);
+  if (state.currentIdx >= state.sentences.length) {
+    state.sentences = shuffle(SENTENCES);
+    state.currentIdx = 0;
+  }
   loadSentence();
-  document.getElementById('accuracy').textContent = calcAccuracy() + '%';
 });
 
-updateHSDisplay();
-document.getElementById('timer-display').textContent = formatTime(state.selectedTime);
+// init
+document.getElementById('hs-display').textContent = getHS();
+document.getElementById('timer-display').textContent = fmt(state.selectedTime);
+const initS = shuffle(SENTENCES);
+state.sentences = initS;
 loadSentence();
 </script>
+</body>
+</html>
