@@ -1,0 +1,326 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#app { padding: 1rem 0; max-width: 820px; }
+.header { text-align: center; margin-bottom: 1.5rem; }
+.header h1 { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 14px; color: var(--color-text-secondary); margin-top: 4px; }
+.time-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.time-btn { padding: 8px 20px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; font-size: 14px; color: var(--color-text-primary); transition: all 0.15s; }
+.time-btn:hover { background: var(--color-background-secondary); }
+.time-btn.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+.stats-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; text-align: center; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.stat-val { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.stat-val.timer-low { color: #E24B4A; }
+.sentence-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.sentence-display { font-size: 17px; line-height: 1.9; letter-spacing: 0.01em; margin-bottom: 8px; word-break: break-word; }
+.meaning { font-size: 13px; color: var(--color-text-secondary); border-top: 0.5px solid var(--color-border-tertiary); padding-top: 8px; margin-top: 4px; }
+.meaning span { color: #185FA5; font-weight: 500; }
+.char { display: inline; }
+.char.correct { color: #3B6D11; }
+.char.wrong { color: #A32D2D; background: #FCEBEB; border-radius: 2px; }
+.char.pending { color: var(--color-text-secondary); }
+.char.current { border-bottom: 2px solid #185FA5; }
+textarea { width: 100%; min-height: 72px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); padding: 12px; font-size: 16px; font-family: var(--font-sans); resize: none; background: var(--color-background-primary); color: var(--color-text-primary); outline: none; transition: border-color 0.15s; }
+textarea:focus { border-color: #185FA5; box-shadow: 0 0 0 2px rgba(24,95,165,0.12); }
+textarea:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; margin-top: 1rem; justify-content: center; flex-wrap: wrap; }
+.btn-primary { padding: 10px 28px; border-radius: var(--border-radius-md); background: #185FA5; color: #fff; border: none; cursor: pointer; font-size: 15px; font-weight: 500; }
+.btn-primary:hover { background: #0C447C; }
+.btn-secondary { padding: 10px 22px; border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-primary); border: 0.5px solid var(--color-border-secondary); cursor: pointer; font-size: 15px; }
+.btn-secondary:hover { background: var(--color-background-secondary); }
+.results-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.5rem; text-align: center; display: none; }
+.results-card.show { display: block; }
+.results-title { font-size: 18px; font-weight: 500; margin-bottom: 1rem; }
+.results-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 1rem; }
+.r-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px; }
+.r-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.r-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.r-val.highlight { color: #185FA5; }
+.highscore-note { font-size: 13px; color: var(--color-text-secondary); margin-top: 8px; }
+.highscore-note span { color: #3B6D11; font-weight: 500; }
+#progress-bar-wrap { height: 4px; background: var(--color-background-secondary); border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
+#progress-bar { height: 100%; background: #185FA5; border-radius: 4px; transition: width 0.5s linear; width: 100%; }
+</style>
+
+<div id="app">
+<h2 class="sr-only">Spell checker typing game with English sentences and Bengali meanings</h2>
+<div class="header">
+  <h1>Typing spell checker</h1>
+  <p>Type each sentence correctly — builds vocabulary with Bengali meanings</p>
+</div>
+
+<div class="time-btns">
+  <button class="time-btn active" data-time="60">1 minute</button>
+  <button class="time-btn" data-time="120">2 minutes</button>
+  <button class="time-btn" data-time="300">5 minutes</button>
+  <button class="time-btn" data-time="600">10 minutes</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card"><div class="stat-label">Time left</div><div class="stat-val" id="timer-display">1:00</div></div>
+  <div class="stat-card"><div class="stat-label">Correct sentences</div><div class="stat-val" id="correct-count">0</div></div>
+  <div class="stat-card"><div class="stat-label">Accuracy</div><div class="stat-val" id="accuracy">100%</div></div>
+  <div class="stat-card"><div class="stat-label">High score</div><div class="stat-val" id="high-score-display">0</div></div>
+</div>
+
+<div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+
+<div class="sentence-card" id="sentence-card">
+  <div class="sentence-display" id="sentence-chars"></div>
+  <div class="meaning"><span>অর্থ:</span> <span id="meaning-bn"></span></div>
+</div>
+
+<textarea id="input-box" placeholder="Click 'Start' and begin typing..." disabled></textarea>
+
+<div class="btn-row">
+  <button class="btn-primary" id="start-btn">Start</button>
+  <button class="btn-secondary" id="skip-btn" disabled>Skip sentence</button>
+</div>
+
+<div class="results-card" id="results-card">
+  <div class="results-title">Session complete!</div>
+  <div class="results-grid">
+    <div class="r-card"><div class="r-label">Sentences typed</div><div class="r-val highlight" id="r-correct">0</div></div>
+    <div class="r-card"><div class="r-label">Accuracy</div><div class="r-val" id="r-accuracy">0%</div></div>
+    <div class="r-card"><div class="r-label">Errors</div><div class="r-val" id="r-errors">0</div></div>
+  </div>
+  <div class="highscore-note" id="hs-note"></div>
+  <div class="btn-row" style="margin-top:1rem;">
+    <button class="btn-primary" id="restart-btn">Play again</button>
+  </div>
+</div>
+</div>
+
+<script>
+const SENTENCES = [
+  {en:"She has been working hard since morning.", bn:"সে সকাল থেকে কঠোর পরিশ্রম করছে।"},
+  {en:"I have already eaten my lunch.", bn:"আমি ইতিমধ্যে দুপুরের খাবার খেয়েছি।"},
+  {en:"He does not go to school on Sundays.", bn:"সে রবিবার স্কুলে যায় না।"},
+  {en:"They were playing football in the field.", bn:"তারা মাঠে ফুটবল খেলছিল।"},
+  {en:"We had finished the work before he arrived.", bn:"সে আসার আগেই আমরা কাজটি শেষ করেছিলাম।"},
+  {en:"She will have left by the time you come.", bn:"তুমি আসার সময়ের মধ্যে সে চলে যাবে।"},
+  {en:"Do you know how to ride a bicycle?", bn:"তুমি কি সাইকেল চালাতে জানো?"},
+  {en:"I am going to the market right now.", bn:"আমি এখনই বাজারে যাচ্ছি।"},
+  {en:"He has never been to a foreign country.", bn:"সে কখনো বিদেশে যায়নি।"},
+  {en:"The teacher told us to read the lesson.", bn:"শিক্ষক আমাদের পাঠটি পড়তে বললেন।"},
+  {en:"She had to leave early due to illness.", bn:"অসুস্থতার কারণে তাকে তাড়াতাড়ি চলে যেতে হয়েছিল।"},
+  {en:"Have you ever seen the sea at night?", bn:"তুমি কি কখনো রাতে সমুদ্র দেখেছ?"},
+  {en:"They are waiting for the bus at the stop.", bn:"তারা বাস স্টপে বাসের জন্য অপেক্ষা করছে।"},
+  {en:"I will call you as soon as I reach home.", bn:"বাড়ি পৌঁছানো মাত্র আমি তোমাকে ফোন করব।"},
+  {en:"He used to play cricket when he was young.", bn:"ছোটবেলায় সে ক্রিকেট খেলত।"},
+  {en:"We should help each other in difficult times.", bn:"কঠিন সময়ে আমাদের একে অপরকে সাহায্য করা উচিত।"},
+  {en:"She has just returned from her trip abroad.", bn:"সে সবে বিদেশ সফর থেকে ফিরেছে।"},
+  {en:"The students had studied before the exam.", bn:"পরীক্ষার আগে ছাত্রছাত্রীরা পড়াশোনা করেছিল।"},
+  {en:"I would have helped if I had known earlier.", bn:"আগে জানলে আমি সাহায্য করতাম।"},
+  {en:"He speaks English very well these days.", bn:"সে এই দিনগুলোতে ইংরেজি খুব ভালো বলে।"},
+  {en:"We have been living here for five years.", bn:"আমরা এখানে পাঁচ বছর ধরে বাস করছি।"},
+  {en:"She did not finish her homework last night.", bn:"গত রাতে সে তার হোমওয়ার্ক শেষ করেনি।"},
+  {en:"They had been arguing about the decision.", bn:"তারা সেই সিদ্ধান্ত নিয়ে তর্ক করছিল।"},
+  {en:"I must go to the doctor tomorrow morning.", bn:"আমাকে আগামীকাল সকালে ডাক্তারের কাছে যেতে হবে।"},
+  {en:"He has given her a beautiful gift today.", bn:"আজ সে তাকে একটি সুন্দর উপহার দিয়েছে।"},
+  {en:"You should not waste your precious time.", bn:"তোমার মূল্যবান সময় নষ্ট করা উচিত নয়।"},
+  {en:"The children were laughing at the clown.", bn:"শিশুরা ভাঁড়ের দিকে তাকিয়ে হাসছিল।"},
+  {en:"I had not seen him for a long time.", bn:"অনেকদিন ধরে আমি তাকে দেখিনি।"},
+  {en:"She will be cooking dinner when you arrive.", bn:"তুমি পৌঁছানোর সময় সে রাতের খাবার রান্না করবে।"},
+  {en:"He has to submit the report by Friday.", bn:"তাকে শুক্রবারের মধ্যে রিপোর্ট জমা দিতে হবে।"},
+  {en:"We are planning a trip to the mountains.", bn:"আমরা পাহাড়ে একটি ভ্রমণের পরিকল্পনা করছি।"},
+  {en:"She told me that she had lost her key.", bn:"সে আমাকে বলল যে সে তার চাবি হারিয়েছে।"},
+  {en:"They have not eaten anything since morning.", bn:"তারা সকাল থেকে কিছু খায়নি।"},
+  {en:"I am trying to improve my English skills.", bn:"আমি আমার ইংরেজি দক্ষতা উন্নত করার চেষ্টা করছি।"},
+  {en:"He was watching television when I called.", bn:"আমি যখন ফোন করলাম সে তখন টেলিভিশন দেখছিল।"},
+  {en:"She has to wake up early every morning.", bn:"তাকে প্রতিদিন সকালে তাড়াতাড়ি উঠতে হয়।"},
+  {en:"We will meet them at the railway station.", bn:"আমরা তাদের রেলওয়ে স্টেশনে দেখা করব।"},
+  {en:"He had already left when the news came.", bn:"খবর আসার সময় সে ইতিমধ্যে চলে গিয়েছিল।"},
+  {en:"She does not like to eat spicy food.", bn:"সে ঝাল খাবার খেতে পছন্দ করে না।"},
+  {en:"I have been learning to drive this week.", bn:"এই সপ্তাহে আমি গাড়ি চালানো শিখছি।"},
+];
+
+let sentences = [];
+let state = {
+  running: false,
+  selectedTime: 60,
+  timeLeft: 60,
+  currentIdx: 0,
+  correctCount: 0,
+  totalTyped: 0,
+  errors: 0,
+  interval: null,
+};
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getHSKey() { return 'typing_hs_' + state.selectedTime; }
+function getHS() { try { return parseInt(localStorage.getItem(getHSKey()) || '0'); } catch(e) { return 0; } }
+function setHS(v) { try { localStorage.setItem(getHSKey(), v); } catch(e) {} }
+
+function updateHSDisplay() {
+  document.getElementById('high-score-display').textContent = getHS();
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return m + ':' + String(sec).padStart(2, '0');
+}
+
+function renderSentence(text, typed) {
+  const container = document.getElementById('sentence-chars');
+  let html = '';
+  for (let i = 0; i < text.length; i++) {
+    let cls = 'char pending';
+    if (i < typed.length) {
+      cls = typed[i] === text[i] ? 'char correct' : 'char wrong';
+    } else if (i === typed.length) {
+      cls = 'char current';
+    }
+    const ch = text[i] === ' ' ? '&nbsp;' : text[i].replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    html += `<span class="${cls}">${ch}</span>`;
+  }
+  container.innerHTML = html;
+}
+
+function loadSentence() {
+  const s = sentences[state.currentIdx % sentences.length];
+  renderSentence(s.en, '');
+  document.getElementById('meaning-bn').textContent = s.bn;
+  document.getElementById('input-box').value = '';
+}
+
+function calcAccuracy() {
+  if (state.totalTyped === 0) return 100;
+  return Math.round(((state.totalTyped - state.errors) / state.totalTyped) * 100);
+}
+
+function onInput(e) {
+  if (!state.running) return;
+  const typed = e.target.value;
+  const s = sentences[state.currentIdx % sentences.length];
+  state.totalTyped = typed.length;
+  renderSentence(s.en, typed);
+  
+  let err = 0;
+  for (let i = 0; i < typed.length; i++) {
+    if (i < s.en.length && typed[i] !== s.en[i]) err++;
+  }
+  state.errors = err;
+  document.getElementById('accuracy').textContent = calcAccuracy() + '%';
+
+  if (typed === s.en) {
+    state.correctCount++;
+    state.currentIdx++;
+    state.totalTyped = 0;
+    state.errors = 0;
+    document.getElementById('correct-count').textContent = state.correctCount;
+    if (state.currentIdx >= sentences.length) sentences = shuffle(SENTENCES);
+    loadSentence();
+  }
+}
+
+function startGame() {
+  sentences = shuffle(SENTENCES);
+  state.running = true;
+  state.currentIdx = 0;
+  state.correctCount = 0;
+  state.totalTyped = 0;
+  state.errors = 0;
+  state.timeLeft = state.selectedTime;
+
+  document.getElementById('correct-count').textContent = '0';
+  document.getElementById('accuracy').textContent = '100%';
+  document.getElementById('results-card').classList.remove('show');
+  document.getElementById('sentence-card').style.display = '';
+  document.getElementById('input-box').disabled = false;
+  document.getElementById('skip-btn').disabled = false;
+  document.getElementById('start-btn').textContent = 'Restart';
+  document.getElementById('progress-bar').style.width = '100%';
+  updateHSDisplay();
+
+  loadSentence();
+  document.getElementById('input-box').focus();
+
+  const timerEl = document.getElementById('timer-display');
+  timerEl.textContent = formatTime(state.timeLeft);
+  timerEl.className = 'stat-val';
+
+  clearInterval(state.interval);
+  state.interval = setInterval(() => {
+    state.timeLeft--;
+    timerEl.textContent = formatTime(state.timeLeft);
+    const pct = (state.timeLeft / state.selectedTime) * 100;
+    document.getElementById('progress-bar').style.width = pct + '%';
+    if (state.timeLeft <= 10) timerEl.className = 'stat-val timer-low';
+    if (state.timeLeft <= 0) endGame();
+  }, 1000);
+}
+
+function endGame() {
+  clearInterval(state.interval);
+  state.running = false;
+  document.getElementById('input-box').disabled = true;
+  document.getElementById('skip-btn').disabled = true;
+
+  const hs = getHS();
+  if (state.correctCount > hs) setHS(state.correctCount);
+  const newHS = getHS();
+  updateHSDisplay();
+
+  document.getElementById('r-correct').textContent = state.correctCount;
+  document.getElementById('r-accuracy').textContent = calcAccuracy() + '%';
+  document.getElementById('r-errors').textContent = state.errors;
+
+  const hsNote = document.getElementById('hs-note');
+  if (state.correctCount >= newHS && state.correctCount > 0 && state.correctCount === newHS) {
+    hsNote.innerHTML = `New high score! <span>${newHS} sentences</span> for this duration.`;
+  } else {
+    hsNote.innerHTML = `Your best for this duration: <span>${newHS} sentences</span>`;
+  }
+
+  document.getElementById('results-card').classList.add('show');
+  document.getElementById('sentence-card').style.display = 'none';
+  document.getElementById('start-btn').textContent = 'Start';
+  document.getElementById('timer-display').textContent = formatTime(state.selectedTime);
+  document.getElementById('timer-display').className = 'stat-val';
+  document.getElementById('progress-bar').style.width = '100%';
+}
+
+document.querySelectorAll('.time-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.selectedTime = parseInt(btn.dataset.time);
+    if (state.running) endGame();
+    document.getElementById('timer-display').textContent = formatTime(state.selectedTime);
+    document.getElementById('timer-display').className = 'stat-val';
+    document.getElementById('progress-bar').style.width = '100%';
+    updateHSDisplay();
+  });
+});
+
+document.getElementById('start-btn').addEventListener('click', startGame);
+document.getElementById('restart-btn').addEventListener('click', startGame);
+document.getElementById('input-box').addEventListener('input', onInput);
+document.getElementById('skip-btn').addEventListener('click', () => {
+  if (!state.running) return;
+  state.currentIdx++;
+  state.totalTyped = 0;
+  state.errors = 0;
+  if (state.currentIdx >= sentences.length) sentences = shuffle(SENTENCES);
+  loadSentence();
+  document.getElementById('accuracy').textContent = calcAccuracy() + '%';
+});
+
+updateHSDisplay();
+document.getElementById('timer-display').textContent = formatTime(state.selectedTime);
+loadSentence();
+</script>
